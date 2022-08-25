@@ -12,6 +12,8 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Auth.Controllers;
 
+// TODO: Logout
+// TODO: Cookie instead of Bearer. https://docs.microsoft.com/es-es/aspnet/core/security/authentication/cookie?view=aspnetcore-6.0
 
 [Route("api/[controller]")]
 [ApiController]
@@ -160,6 +162,7 @@ public class AuthenticateController : ControllerBase
                 SecurityAlgorithms.HmacSha256
             )
         );
+
         return Ok(new
         {
             token = new JwtSecurityTokenHandler().WriteToken(token),

@@ -1,19 +1,44 @@
+using System.Text;
+
 using Auth.DbContext;
 using Auth.IdentityAuth;
 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.SqlServer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
-        options.User.RequireUniqueEmail = false;
+        options.User.RequireUniqueEmail = true;
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
+
+builder.Services.AddAuthentication(options => {
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options => {
+    options.SaveToken = true;
+    options.RequireHttpsMetadata = false;
+    options.TokenValidationParameters = new TokenValidationParameters()
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidIssuer = builder.Configuration.GetValue<string>("JWT:ValidIssuer"),
+        ValidAudience = builder.Configuration.GetValue<string>("JWT:ValidAudience"),
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration.GetValue<string>("JWT:SecretKey"))
+        )
+    };
+});
+
 
 builder.Services.AddControllers();
 builder.Services.AddDbContext<ApplicationDbContext>(
@@ -27,8 +52,8 @@ builder.Services.AddSwaggerGen(options =>
     options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
     {
         Version = "v1",
-        Title = "Example API",
-        Description = "An ASP.NET Core Web API",
+        Title = "Authentication & Authorization API",
+        Description = "Authentication & Authorization in ASP.NET Core with JWT",
         TermsOfService = new Uri("https://example.com/terms"),
         Contact = new Microsoft.OpenApi.Models.OpenApiContact
         {
@@ -39,6 +64,29 @@ builder.Services.AddSwaggerGen(options =>
         {
             Name = "Example License",
             Url = new Uri("https://example.com/license")
+        }
+    });
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter `Bearer`[space] and then your valid token in the text input below.\n\nExample: \"Bearer kjfaiuraksdjahsdfiu\""
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
         }
     });
 });
@@ -58,6 +106,7 @@ var app = builder.Build();
 
     app.UseHttpsRedirection();
 
+    app.UseAuthentication();
     app.UseAuthorization();
 
     app.MapControllers();
