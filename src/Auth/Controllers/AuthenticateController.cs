@@ -40,9 +40,6 @@ public class AuthenticateController : ControllerBase
         [FromBody] RegisterModel model
     )
     {
-        if (model is null)
-            throw new ArgumentNullException(nameof(model));
-
         var userExists = await _userManager.FindByNameAsync(model.Username);
 
         if (userExists != null)
@@ -81,9 +78,6 @@ public class AuthenticateController : ControllerBase
         [FromBody] RegisterModel model
     )
     {
-        if (model is null)
-            throw new ArgumentNullException(nameof(model));
-
         var userExists = await _userManager.FindByNameAsync(model.Username);
 
         if (userExists != null)
