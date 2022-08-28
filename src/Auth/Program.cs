@@ -4,6 +4,7 @@ using Auth.DbContext;
 using Auth.IdentityAuth;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -15,6 +16,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
         options.User.RequireUniqueEmail = true;
+        options.SignIn.RequireConfirmedEmail = false;
+        options.SignIn.RequireConfirmedPhoneNumber = false;
+        options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789-._@+";
+        options.Password.RequireDigit = true;
+        options.Password.RequiredLength = 6;
+        options.Password.RequireLowercase = true;
+        options.Password.RequireNonAlphanumeric = true;
+        options.Password.RequireUppercase = true;
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
@@ -110,6 +119,11 @@ var app = builder.Build();
     app.UseAuthorization();
 
     app.MapControllers();
+
+    app.MapGet("/", (http) => { 
+         http.Response.Redirect("docs", false); 
+         return Task.FromResult("Ok");
+    });
 
     app.Run();
 }

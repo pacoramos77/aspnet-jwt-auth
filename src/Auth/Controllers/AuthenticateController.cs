@@ -36,6 +36,8 @@ public class AuthenticateController : ControllerBase
 
     [HttpPost]
     [Route("register")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register(
         [FromBody] RegisterModel model
     )
@@ -64,16 +66,18 @@ public class AuthenticateController : ControllerBase
                 new Response
                 {
                     Status = "Error",
-                    Message = "User creation failed! Please check user details and try again."
+                    Message = result.ToString()
                 }
             );
         }
 
-        return Ok(new Response { Status = "Success", Message = "User create successfully!" });
+        return CreatedAtAction(nameof(Login), new Response { Status = "Success", Message = "User create successfully!" });
     }
 
     [HttpPost]
     [Route("register-admin")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RegisterAdmin(
         [FromBody] RegisterModel model
     )
@@ -102,7 +106,7 @@ public class AuthenticateController : ControllerBase
                 new Response
                 {
                     Status = "Error",
-                    Message = "User creation failed! Please check user details and try again."
+                    Message = result.ToString()
                 }
             );
         }
@@ -116,11 +120,13 @@ public class AuthenticateController : ControllerBase
         if (await _roleManager.RoleExistsAsync(UserRoles.Admin))
             await _userManager.AddToRoleAsync(user, UserRoles.Admin);
 
-        return Ok(new Response { Status = "Success", Message = "User create successfully!" });
+        return CreatedAtAction(nameof(Login), new Response { Status = "Success", Message = "User create successfully!" });
     }
 
     [HttpPost]
     [Route("login")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login(
         [FromBody] LoginModel model
         )
