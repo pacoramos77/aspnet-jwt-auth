@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace Auth.Models;
 
 public class UserRoles
